@@ -43,7 +43,16 @@ class JsonResponseHandler extends AbstractResponseHandler
                 $this->parseSingleRecordResult($object, $this->data);
             } elseif (array_key_exists('api_key', $this->data)) {
                 $this->resultCount = 0;
-                $this->result = $this->data['api_key'];
+
+                /*
+                    changed result to return an array instead of single api_key value.
+                */
+                $this->result['api_key'] = $this->data['api_key'];
+
+                if (array_key_exists('version', $this->data)) {
+                    $this->result['version'] = $this->data['version'];
+                }
+
             } else {
                 $asString = true;
                 throw new RuntimeException('Unknown response format: '.$this->responseObj->getBoby($asString));
@@ -62,8 +71,17 @@ class JsonResponseHandler extends AbstractResponseHandler
      * @return void
      */
     protected function parseMultiRecordResult($objectName, $data)
-    {
-        $this->resultCount = (int) $data['result']['total_results'];
+    {        
+        /*
+            Custom logic added by Michael Porter in order to handle a 'prospectAccount' 'describe' call.
+            Returned data is not formatted the same as other results...
+        */
+        if( 'prospectAccount' === $objectName){
+            $this->resultCount = count($data['result']['field']);
+        } else {
+            $this->resultCount = (int) $data['result']['total_results'];
+        }
+            
 
         if (0 === $this->resultCount) {
             $this->result = array();
@@ -74,6 +92,17 @@ class JsonResponseHandler extends AbstractResponseHandler
                 } else {
                     $this->result = $data['result'][$objectName];
                 }
+            /*
+                Custom logic added by Michael Porter in order to handle a 'prospectAccount' 'describe' call.
+                Returned data is not formatted the same as other results...
+            */
+            } else if( 'prospectAccount' === $objectName && array_key_exists('field', $data['result']) ){
+                if ($this->resultHasOnlyOneRecord($objectName, $data)) {
+                    $this->result = array($data['result']['field']);
+                } else {
+                    $this->result = $data['result']['field'];
+                }
+
             } else {
                 $msg = sprintf('The response does not contain the expected object key \'%s\'', $objectName);
 

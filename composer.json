@@ -1,15 +1,19 @@
 {
-    "name": "hgg/pardot",
+    "name": "icaptureapps/pardot",
     "type": "library",
     "description": "Pardot API library for building custom CRM connectors",
     "keywords": [ "pardot", "salesforce", "api", "rest", "json", "xml" ],
-    "homepage": "http://github.com/hglattergotz/pardot",
+    "homepage": "http://github.com/icaptureapps/pardot",
     "license": "MIT",
     "authors": [
         {
             "name": "Henning Glatter-Götz",
             "email": "henning@glatter-gotz.com",
             "homepage": "http://glatter-gotz.com"
+        },
+        {
+            "name": "Michael Porter",
+            "email": "michael@icapture.com",
         }
     ],
     "require": {

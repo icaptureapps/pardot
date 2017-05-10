@@ -81,9 +81,18 @@ class Connector
      * The Pardot API version - currently 3
      *
      * @var string
-     * @access protected
+     * @access public
+        
+            change to 'public' since Pardot added a version 4 and the users account is incompatible with both -- has
+            to be one or the other.  We have to determine the version during the 'login' object found in the 
+            authenticate method. 
+
+            Defaults to '3' since a version number isn't returned if account uses v3 - if account uses v4 that value 
+            is returned with the api_key request.
+
      */
-    protected $version = '3';
+    public $version = '3'; 
+    
 
     /**
      * The output type, which can be full, simple or mobile
@@ -142,7 +151,7 @@ class Connector
     public function __construct(
         array $parameters,
         \Guzzle\Http\Client $httpClient = null,
-        $httpClientOptions = array('timeout' => 10))
+        $httpClientOptions = array('timeout' => 30))
     {
         try {
             $required = array('email', 'user-key', 'password');
@@ -188,7 +197,17 @@ class Connector
             'format'   => $this->format
         );
 
-        $this->apiKey = $this->doPost($object, $url, $parameters);
+        //vprint($object,'authenticate() $object');
+        //vprint($url,'authenticate() $url');
+        //vprint($parameters,'authenticate() $paramters');
+
+        $auth_result = $this->doPost($object, $url, $parameters);
+
+        $this->apiKey = $auth_result['api_key'];
+
+        if( array_key_exists('version', $auth_result)){
+            $this->version = $auth_result['version'];
+        }
 
         return $this->apiKey;
     }
@@ -259,8 +278,15 @@ class Connector
         );
 
         try {
+            //vprint($object,'TRY post() $object');
+            //vprint($url,'TRY post() $url');
+            //vprint($parameters,'TRY post() $paramters');
             return $this->doPost($object, $url, $parameters);
         } catch (AuthenticationErrorException $e) {
+            //vprint($e,'CATCH post() $e');
+            //vprint($object,'CATCH post() $object');
+            //vprint($url,'CATCH post() $url');
+            //vprint($parameters,'CATCH post() $paramters');
             $this->authenticate();
             $parameters['api_key'] = $this->apiKey;
 
@@ -359,9 +385,11 @@ class Connector
 
         try {
             $handler = $this->getHandler($httpResponse, $object);
+            //vprint($handler,'doPost() $handler');
             $result = $handler->parse()->getResult();
             $this->totalResults = $handler->getResultCount();
-
+            //vprint($result,'doPost() $result');
+            //vprint($this->totalResults,'doPost() $this->totalResults');
             return $result;
         } catch (ExceptionInterface $e) {
             $e->setUrl($url);
