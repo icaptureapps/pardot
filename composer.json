@@ -28,5 +28,5 @@
     "autoload": {
         "psr-0": { "HGG\\Pardot\\": "src/" }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev-master"
 }
